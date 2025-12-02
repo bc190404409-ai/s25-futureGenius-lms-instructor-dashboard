@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Certification extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'instructor_id',
+        'title',
+        'issuer',
+        'file_path',
+        'issue_date',
+        'expiry_date',
+        'status',
+    ];
+    public function instructor()
+    {
+        return $this->belongsTo(Instructor::class);
+    }
+}
