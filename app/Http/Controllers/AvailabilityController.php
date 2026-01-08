@@ -41,13 +41,10 @@ class AvailabilityController extends Controller
     }
     public function edit(Availability $availability)
     {
-        $this->authorize('update', $availability);
         return view('instructor.availabilities.edit', compact('availability'));
     }
     public function update(Request $request, Availability $availability)
     {
-        $this->authorize('update', $availability);
-
         $request->validate([
             'mode' => 'required|in:online,in-person',
             'city' => 'nullable|string|max:255',
@@ -68,7 +65,6 @@ class AvailabilityController extends Controller
     }
     public function destroy(Availability $availability)
     {
-        $this->authorize('delete', $availability);
         $availability->delete();
         return redirect()->route('availabilities.index')->with('success', 'Availability deleted successfully.');
     }

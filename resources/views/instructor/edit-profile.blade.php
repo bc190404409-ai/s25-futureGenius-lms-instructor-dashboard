@@ -34,8 +34,17 @@
                 @enderror
             </div>
 
-            {{-- City & Phone --}}
-            <div class="grid grid-cols-2 gap-4">
+            {{-- Location & Phone (simple text inputs) --}}
+            <div class="grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-gray-700">Province</label>
+                    <input type="text" name="province" value="{{ old('province', $instructor->province) }}"
+                        class="w-full mt-1 border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                    @error('province')
+                        <span class="text-red-600 text-sm">{{ $message }}</span>
+                    @enderror
+                </div>
+
                 <div>
                     <label class="block text-gray-700">City</label>
                     <input type="text" name="city" value="{{ old('city', $instructor->city) }}"
@@ -44,14 +53,24 @@
                         <span class="text-red-600 text-sm">{{ $message }}</span>
                     @enderror
                 </div>
+
                 <div>
-                    <label class="block text-gray-700">Phone</label>
-                    <input type="text" name="phone" value="{{ old('phone', $instructor->phone) }}"
+                    <label class="block text-gray-700">Street</label>
+                    <input type="text" name="street" value="{{ old('street', $instructor->street) }}"
                         class="w-full mt-1 border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
-                    @error('phone')
+                    @error('street')
                         <span class="text-red-600 text-sm">{{ $message }}</span>
                     @enderror
                 </div>
+            </div>
+
+            <div class="mt-3 sm:col-span-3">
+                <label class="block text-gray-700">Phone</label>
+                <input type="text" name="phone" value="{{ old('phone', $instructor->phone) }}"
+                    class="w-full mt-1 border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
+                @error('phone')
+                    <span class="text-red-600 text-sm">{{ $message }}</span>
+                @enderror
             </div>
 
             {{-- LinkedIn --}}
@@ -65,9 +84,9 @@
             </div>
             <div>
                 <label class="block text-gray-700">Portfolio URL</label>
-                <input type="url" name="Portfolio_url" value="{{ old('Portfolio_url', $instructor->Portfolio_url) }}"
+                <input type="url" name="portfolio_url" value="{{ old('portfolio_url', $instructor->portfolio_url) }}"
                     class="w-full mt-1 border border-gray-300 rounded-md shadow-sm px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500">
-                @error('Portfolio_url')
+                @error('portfolio_url')
                     <span class="text-red-600 text-sm">{{ $message }}</span>
                 @enderror
             </div>
@@ -98,38 +117,24 @@
                 @endif
             </div>
 
-            {{-- CV --}}
+            {{-- Video URL (replaces CV/Intro upload) --}}
             <div>
-                <label class="block text-gray-700">CV File</label>
-                <input type="file" name="cv_file"
-                    class="mt-2 border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                @error('cv_file')
+                <label class="block text-gray-700">Intro Video URL</label>
+                <input type="url" name="video_url" value="{{ old('video_url', $instructor->video_url) }}" placeholder="https://youtube.com/..."
+                    class="w-full mt-2 border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                @error('video_url')
                     <span class="text-red-600 text-sm">{{ $message }}</span>
                 @enderror
-                @if($instructor->cv_file)
+                @if($instructor->video_url)
                     <p class="mt-1 text-gray-500">Current: 
-                        <a href="{{ asset('storage/' . $instructor->cv_file) }}" target="_blank" class="text-blue-600 hover:underline">
-                            View CV
+                        <a href="{{ $instructor->video_url }}" target="_blank" class="text-blue-600 hover:underline">
+                            View Video Link
                         </a>
                     </p>
                 @endif
             </div>
 
-            {{-- Intro Video --}}
-            <div>
-                <label class="block text-gray-700">Intro Video</label>
-                <input type="file" name="intro_video"
-                    class="mt-2 border border-gray-300 rounded-md px-3 py-2 w-full text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                @error('intro_video')
-                    <span class="text-red-600 text-sm">{{ $message }}</span>
-                @enderror
-                @if($instructor->intro_video)
-                    <video class="w-full mt-2 rounded-lg" controls>
-                        <source src="{{ asset('storage/' . $instructor->intro_video) }}" type="video/mp4">
-                        Your browser does not support video playback.
-                    </video>
-                @endif
-            </div>
+
 
             <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700">
                 Save Changes

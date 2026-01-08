@@ -57,3 +57,46 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+---
+
+## Social Signup (Google & LinkedIn)
+
+To enable Google and LinkedIn social signup (instructor signups):
+
+1. Install packages (already installed in the project):
+   - `laravel/socialite`
+   - `socialiteproviders/linkedin`
+
+2. Add the following to your `.env` (replace placeholders):
+
+```
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+LINKEDIN_CLIENT_ID=your-linkedin-client-id
+LINKEDIN_CLIENT_SECRET=your-linkedin-client-secret
+```
+
+3. Ensure `config/services.php` has `google` and `linkedin` entries pointing at `/auth/callback/google` and `/auth/callback/linkedin` respectively (this project already has those entries).
+
+4. For local testing, use a tunnel (e.g., ngrok) and register the correct redirect URIs in your OAuth provider settings.
+
+OTP / Email verification
+- When instructors register via **email/password**, the system sends a 6-digit OTP to the provided email and requires the user to verify it (15-minute expiry) before the account is marked as email-verified (still pending admin approval).
+- Social signups do NOT receive an OTP and skip the verification step (provider email is used instead).
+- OTPs are stored in `email_otps` table; change expiry and policies in the code if you want different behavior.
+
+Routes:
+- `GET /auth/redirect/{provider}` → redirect to provider (use `google` or `linkedin`).
+- `GET /auth/callback/{provider}` → callback (creates pending instructor or logs in if approved).
+
+Behavior:
+- Social signup requires the provider to return an email. If no email is provided the user is redirected to the login page with an error.
+- New social signups create a `User` and an `Instructor` with `is_approved = false` and show the "waiting for approval" page.
+
+Mail & notifications
+1. By default the project can use the `log` mail driver for local development. To use SMTP set the standard env vars (`MAIL_MAILER=smtp`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, etc.).
+2. When an admin approves or rejects an instructor the system sends a corresponding email (approval/rejection).
+3. Tests use `Mail::fake()` so no real emails are sent during CI.
+
+

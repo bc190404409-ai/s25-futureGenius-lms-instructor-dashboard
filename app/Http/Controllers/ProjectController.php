@@ -52,15 +52,12 @@ class ProjectController extends Controller
     // Show edit form
     public function edit(Project $project)
     {
-        $this->authorize('update', $project);
         return view('instructor.projects.edit', compact('project'));
     }
 
     // Update project
     public function update(Request $request, Project $project)
     {
-        $this->authorize('update', $project);
-
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -91,8 +88,6 @@ class ProjectController extends Controller
     // Delete project
     public function destroy(Project $project)
     {
-        $this->authorize('delete', $project);
-
         if ($project->media && Storage::disk('public')->exists($project->media)) {
             Storage::disk('public')->delete($project->media);
         }

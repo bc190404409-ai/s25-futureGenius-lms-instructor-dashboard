@@ -43,7 +43,7 @@ class AssessmentController extends Controller
             'title' => 'required|string|max:255',
             'course_id' => 'required|exists:courses,id',
             'type' => 'required|in:quiz,assignment,lab,true_false',
-            'total_marks' => 'required|integer|min:0',
+            'total_marks' => 'required|integer|min:1',
             'due_date' => 'nullable|date',
             'description' => 'nullable|string',
             'questions_count' => 'nullable|integer|min:1',
@@ -57,14 +57,12 @@ class AssessmentController extends Controller
 
     public function edit(Assessment $assessment)
     {
-        $this->authorize('update', $assessment);
         $courses = Course::where('instructor_id', Auth::id())->get();
         return view('instructor.assessments.edit', compact('assessment', 'courses'));
     }
 
     public function update(Request $request, Assessment $assessment)
     {
-        $this->authorize('update', $assessment);
 
         $request->validate([
             'title' => 'required|string|max:255',
@@ -83,7 +81,6 @@ class AssessmentController extends Controller
 
     public function destroy(Assessment $assessment)
     {
-        $this->authorize('delete', $assessment);
         $assessment->delete();
         return redirect()->route('instructor.assessments.index')
             ->with('success', 'Assessment deleted successfully!');

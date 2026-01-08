@@ -18,6 +18,10 @@ class AuthController extends Controller
     {
         return view('auth.register');
     }
+
+    /**
+     * Handle email registration (sends OTP for verification). Social signups skip OTP.
+     */
     public function register(Request $request)
     {
         $request->validate([
@@ -32,11 +36,29 @@ class AuthController extends Controller
             'password'=>Hash::make($request->password),
             'role'=>'instructor',
         ]);
-        Instructor::create(['user_id'=>$user->id]);
 
-        Auth::login($user);
+        // create instructor record (pending approval by admin)
+        Instructor::create([
+            'user_id' => $user->id,
+            'is_approved' => false,
+        ]);
 
-        return redirect()->route('dashboard');
+        // create an OTP and send it to the user for email verification
+        $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $otp = \App\Models\EmailOtp::create([
+            'user_id' => $user->id,
+            'code' => $code,
+            'expires_at' => now()->addMinutes(15),
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\InstructorOtp($otp));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to send OTP email: '. $e->getMessage());
+        }
+
+        // Show OTP verification form (do not log in or show pending page until verified)
+        return view('auth.verify_otp', ['user' => $user]);
     }
     public function showLoginForm()
     {
@@ -49,13 +71,47 @@ class AuthController extends Controller
             'password'=>'required',
         ]);
 
-        if(Auth::attempt($credentials)){
+        // Pre-check instructor states before attempting authentication to show helpful messages
+        $userByEmail = \App\Models\User::where('email', $request->email)->first();
+        if ($userByEmail && $userByEmail->role === 'instructor') {
+            $instructor = $userByEmail->instructor;
+
+            // If instructor record is missing or not yet approved, show pending page first
+            if (!$instructor || !$instructor->is_approved) {
+                return view('auth.instructor_pending');
+            }
+
+            if (!$userByEmail->email_verified_at) {
+                return back()->with('error', 'Please verify your email before logging in.');
+            }
+
+            if ($instructor->is_disabled) {
+                return back()->with('error', 'Your account has been disabled. Please contact support.');
+            }
+
+            // For instructors, authenticate by checking password and logging in directly
+            if (!\Illuminate\Support\Facades\Hash::check($credentials['password'], $userByEmail->password)) {
+                return back()->withErrors([
+                    'email' => 'The provided credentials do not match our records.',
+                ]);
+            }
+
+            Auth::loginUsingId($userByEmail->id);
             $request->session()->regenerate();
+
             return redirect()->route('dashboard');
         }
-        return back()->withErrors([
-            'email'=>'The provided credentials do not match our records.',
-        ]);
+
+        // Non-instructor flows use the normal attempt
+        if (!Auth::attempt($credentials)) {
+            return back()->withErrors([
+                'email' => 'The provided credentials do not match our records.',
+            ]);
+        }
+
+        $request->session()->regenerate();
+
+        return redirect()->route('dashboard');
     }
     public function logout(Request $request)
     {
