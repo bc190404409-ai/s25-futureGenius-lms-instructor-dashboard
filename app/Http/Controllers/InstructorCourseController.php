@@ -48,14 +48,11 @@ class InstructorCourseController extends Controller
 
     public function edit(Course $course)
     {
-        $this->authorize('update', $course);
         return view('courses.edit', compact('course'));
     }
 
     public function update(Request $request, Course $course)
     {
-        $this->authorize('update', $course);
-
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -79,9 +76,7 @@ class InstructorCourseController extends Controller
 
     public function destroy(Course $course)
     {
-        $this->authorize('delete', $course);
         $course->delete();
-
         return redirect()->route('instructor.courses.index')->with('success', 'Course deleted successfully.');
     }
 }

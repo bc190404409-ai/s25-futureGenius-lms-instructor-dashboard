@@ -41,7 +41,6 @@
         <input type="number" name="questions[{{ $i }}][correct_option]" min="0" max="3" class="border rounded px-3 py-2 w-full mb-1" required>
     </div>
     @endfor
-
-    <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded">Save Quiz</button>
+    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Save Quiz</button>
 </form>
 @endsection

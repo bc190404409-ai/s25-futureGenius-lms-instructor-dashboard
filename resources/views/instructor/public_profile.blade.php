@@ -8,7 +8,7 @@
 
         <div>
             <h1 class="text-3xl font-bold text-gray-800">{{ $instructor->name }}</h1>
-            <p class="text-gray-600 mt-2">{{ $instructor->city ?? 'City not specified' }}</p>
+            <p class="text-gray-600 mt-2">{{ trim(($instructor->province ? $instructor->province . ' / ' : '') . ($instructor->city ?? '')) ?: 'Location not specified' }}</p>
             <p class="mt-2 text-gray-500">{{ $instructor->bio ?? 'No bio available yet.' }}</p>
 
             <div class="mt-4 flex space-x-3">
@@ -18,10 +18,10 @@
                        🔗 LinkedIn
                     </a>
                 @endif
-                @if($instructor->cv_file)
-                    <a href="{{ asset('storage/'.$instructor->cv_file) }}" target="_blank"
+                @if($instructor->video_url)
+                    <a href="{{ $instructor->video_url }}" target="_blank"
                        class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg">
-                       📄 View CV
+                       ▶ Watch Intro
                     </a>
                 @endif
             </div>

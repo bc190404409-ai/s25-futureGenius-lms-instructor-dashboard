@@ -6,7 +6,7 @@
     <title>Instructor Dashboard - Kidicode LMS</title>
     @vite('resources/css/app.css')
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="page-bg font-sans">
 
 <div class="flex h-screen">
 

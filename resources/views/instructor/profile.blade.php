@@ -10,7 +10,7 @@
             <div>
                 <h2 class="text-2xl font-semibold text-gray-800">{{ $instructor->name }}</h2>
                 <p class="text-gray-600">{{ $instructor->email }}</p>
-                <p class="text-gray-500">{{ $instructor->city ?? 'No city added' }}</p>
+                <p class="text-gray-500">{{ trim(($instructor->province ? $instructor->province . ' / ' : '') . ($instructor->city ?? '')) ?: 'No location set' }}</p>
                 <a href="{{ route('instructor.profile.edit') }}" class="mt-3 inline-block bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700">
                     Edit Profile
                 </a>
@@ -33,13 +33,7 @@
             @endif
 
             {{-- CV --}}
-            @if($instructor->cv_file)
-                <p><strong>CV:</strong> 
-                   <a href="{{ asset('storage/' . $instructor->cv_file) }}" target="_blank" class="text-blue-600 hover:underline">
-                       View CV
-                   </a>
-                </p>
-            @endif
+            {{-- CV removed per request --}}
 
             {{-- Portfolio File --}}
             @if($instructor->portfolio_file)
@@ -59,14 +53,11 @@
                 </p>
             @endif
 
-            {{-- Intro Video --}}
-            @if($instructor->intro_video)
+            {{-- Intro Video URL --}}
+            @if($instructor->video_url)
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800 mt-4">Intro Video</h3>
-                    <video class="w-full mt-2 rounded-lg" controls>
-                        <source src="{{ asset('storage/' . $instructor->intro_video) }}" type="video/mp4">
-                        Your browser does not support video playback.
-                    </video>
+                    <p><a href="{{ $instructor->video_url }}" target="_blank" class="text-blue-600 hover:underline">Watch intro</a></p>
                 </div>
             @endif
         </div>

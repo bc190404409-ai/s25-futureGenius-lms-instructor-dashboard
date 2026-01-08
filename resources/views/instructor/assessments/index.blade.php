@@ -9,39 +9,41 @@
     + Add New Assessment
 </a>
 
-<table class="min-w-full bg-white shadow rounded">
-    <thead>
-        <tr class="bg-gray-200">
-            <th class="py-2 px-4">#</th>
-            <th class="py-2 px-4">Title</th>
-            <th class="py-2 px-4">Course</th>
-            <th class="py-2 px-4">Type</th>
-            <th class="py-2 px-4">Total Marks</th>
-            <th class="py-2 px-4">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($assessments as $index => $assessment)
-        <tr class="border-b">
-            <td class="py-2 px-4">{{ $index + 1 }}</td>
-            <td class="py-2 px-4">{{ $assessment->title }}</td>
-            <td class="py-2 px-4">{{ $assessment->course->title ?? 'N/A' }}</td>
-            <td class="py-2 px-4">{{ ucfirst($assessment->type) }}</td>
-            <td class="py-2 px-4">{{ $assessment->total_marks }}</td>
-            <td class="py-2 px-4 space-x-2">
-                <a href="{{ route('instructor.assessments.edit', $assessment->id) }}" class="bg-blue-500 text-white px-2 py-1 rounded">Edit</a>
-                <form action="{{ route('instructor.assessments.destroy', $assessment->id) }}" method="POST" class="inline-block">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" onclick="return confirm('Are you sure?')" class="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
-                </form>
-            </td>
-        </tr>
-        @empty
-        <tr>
-            <td colspan="6" class="text-center py-4">No assessments found.</td>
-        </tr>
-        @endforelse
-    </tbody>
-</table>
+<div class="overflow-x-auto">
+    <table class="min-w-full table-auto border-collapse border border-gray-300 shadow rounded">
+        <thead class="bg-gray-200">
+            <tr>
+                <th class="py-2 px-4 border-b border-gray-300 text-left">#</th>
+                <th class="py-2 px-4 border-b border-gray-300 text-left">Title</th>
+                <th class="py-2 px-4 border-b border-gray-300 text-left">Course</th>
+                <th class="py-2 px-4 border-b border-gray-300 text-left">Type</th>
+                <th class="py-2 px-4 border-b border-gray-300 text-left">Total Marks</th>
+                <th class="py-2 px-4 border-b border-gray-300 text-left">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($assessments as $index => $assessment)
+            <tr class="border-b border-gray-300">
+                <td class="py-2 px-4">{{ $index + 1 }}</td>
+                <td class="py-2 px-4">{{ $assessment->title }}</td>
+                <td class="py-2 px-4">{{ $assessment->course->title ?? 'N/A' }}</td>
+                <td class="py-2 px-4">{{ ucfirst($assessment->type) }}</td>
+                <td class="py-2 px-4">{{ $assessment->total_marks }}</td>
+                <td class="py-2 px-4 space-x-2">
+                    <!-- <a href="{{ route('instructor.assessments.edit', $assessment->id) }}" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded">Edit</a> -->
+                    <form action="{{ route('instructor.assessments.destroy', $assessment->id) }}" method="POST" class="inline-block">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" onclick="return confirm('Are you sure?')" class="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="6" class="text-center py-4">No assessments found.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+</div>
 @endsection

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminApprovalController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssessmentSubmissionController;
 use App\Http\Controllers\AuthController;
@@ -124,4 +125,27 @@ Route::middleware(['auth', 'can:admin'])->group(function () {
 
     Route::get('admin/projects/approve/{project}', [AdminApprovalController::class, 'approveProject'])->name('admin.projects.approve');
     Route::get('admin/projects/reject/{project}', [AdminApprovalController::class, 'rejectProject'])->name('admin.projects.reject');
+});
+
+// Socialite routes for instructor registration/login
+Route::get('auth/redirect/{provider}', [App\Http\Controllers\Auth\SocialAuthController::class, 'redirect'])->name('social.redirect');
+Route::get('auth/callback/{provider}', [App\Http\Controllers\Auth\SocialAuthController::class, 'callback'])->name('social.callback');
+
+// OTP verification routes
+Route::get('verify-otp', function(){ return redirect('/'); })->name('verify.otp.form'); // placeholder if accessed directly
+Route::post('verify-otp', [App\Http\Controllers\Auth\OtpController::class, 'verify'])->name('verify.otp');
+// Resend OTP (throttled) — limit to 5 per minute globally and per-user cooldown enforced in controller
+Route::post('resend-otp', [App\Http\Controllers\Auth\OtpController::class, 'resend'])->name('resend.otp')->middleware('throttle:5,1');
+
+// Admin auth and dashboard
+Route::get('admin/login', [App\Http\Controllers\AdminAuthController::class, 'showLoginForm'])->name('admin.login.form');
+Route::post('admin/login', [App\Http\Controllers\AdminAuthController::class, 'login'])->name('admin.login');
+Route::post('admin/logout', [App\Http\Controllers\AdminAuthController::class, 'logout'])->name('admin.logout');
+
+Route::prefix('admin')->middleware('auth:admin')->group(function () {
+    Route::get('/', [App\Http\Controllers\AdminAuthController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/instructors', [App\Http\Controllers\AdminAuthController::class, 'instructors'])->name('admin.instructors.index');
+    Route::post('/instructors/{instructor}/approve', [App\Http\Controllers\AdminAuthController::class, 'approveInstructor'])->name('admin.instructors.approve');
+    Route::post('/instructors/{instructor}/reject', [App\Http\Controllers\AdminAuthController::class, 'rejectInstructor'])->name('admin.instructors.reject');
+    Route::post('/instructors/{instructor}/toggle-disable', [App\Http\Controllers\AdminAuthController::class, 'toggleDisableInstructor'])->name('admin.instructors.toggleDisable');
 });

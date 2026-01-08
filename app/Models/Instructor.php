@@ -14,6 +14,12 @@ class Instructor extends Model
         'experience_years',
         'availability_mode',
         'city',
+        'is_approved',
+        'approved_by',
+        'approved_at',
+        'is_disabled',
+        'rejected_by',
+        'rejected_at',
     ];
 
     public function user()

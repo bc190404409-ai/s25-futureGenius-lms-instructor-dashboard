@@ -17,9 +17,14 @@ class User extends Authenticatable
         'role',
         'profile_photo',
         'city',
+        'province',
+        'street',
+        'phone',
         'bio',
         'linkedIn_url',
-        'cv_file',
+        'video_url',
+        'portfolio_url',
+        'portfolio_file',
     ];
 
     protected $hidden = ['password'];
