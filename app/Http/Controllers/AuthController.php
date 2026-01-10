@@ -62,6 +62,33 @@ class AuthController extends Controller
     }
     public function showLoginForm()
     {
+        // If a redirect was provided (from emails or other links), store it as the intended URL
+        if (request()->has('redirect')) {
+            $redirect = request('redirect');
+            // decode URL-encoded redirects (emails often encode query values)
+            $redirect = urldecode($redirect);
+
+            // Basic safety: only accept relative paths or absolute URLs that match app host
+            $isValid = false;
+            try {
+                $appHost = parse_url(config('app.url'), PHP_URL_HOST);
+                $redirectHost = parse_url($redirect, PHP_URL_HOST);
+
+                if ($redirectHost === null && str_starts_with($redirect, '/')) {
+                    $isValid = true; // relative path like /dashboard
+                    $redirect = url($redirect);
+                } elseif ($redirectHost && $redirectHost === $appHost) {
+                    $isValid = true;
+                }
+            } catch (\Exception $e) {
+                $isValid = false;
+            }
+
+            if ($isValid) {
+                session()->put('url.intended', $redirect);
+            }
+        }
+
         return view('auth.login');
     }
     public function login(Request $request)
@@ -98,8 +125,9 @@ class AuthController extends Controller
 
             Auth::loginUsingId($userByEmail->id);
             $request->session()->regenerate();
+            $request->session()->put('last_activity', time());
 
-            return redirect()->route('dashboard');
+            return redirect()->intended(route('dashboard'));
         }
 
         // Non-instructor flows use the normal attempt
@@ -110,8 +138,9 @@ class AuthController extends Controller
         }
 
         $request->session()->regenerate();
+        $request->session()->put('last_activity', time());
 
-        return redirect()->route('dashboard');
+        return redirect()->intended(route('dashboard'));
     }
     public function logout(Request $request)
     {

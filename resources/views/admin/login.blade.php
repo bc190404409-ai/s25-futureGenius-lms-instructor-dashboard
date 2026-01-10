@@ -7,6 +7,6 @@
     @vite(['resources/css/app.css'])
 </head>
 <body class="min-h-screen bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center p-4">
-    @include('auth.partials.login-card', ['action' => route('admin.login'), 'title' => 'Admin Login', 'subtitle' => 'Sign in to the admin panel', 'submitText' => 'Sign in', 'showSocial' => false])
+    @include('auth.partials.login-card', ['action' => route('admin.login'), 'title' => 'Admin Login', 'subtitle' => 'Sign in to the admin panel', 'submitText' => 'Sign in', 'showSocial' => false, 'showRegister' => false])
 </body>
 </html>

@@ -1,78 +1,128 @@
 @extends('admin.layout')
 
 @section('content')
-    <div class="flex items-center justify-between mb-4">
-        <h1 class="text-2xl font-semibold">Instructors</h1>
-        <div class="text-sm text-gray-500">Total: {{ $instructors->total() }}</div>
+<link rel="stylesheet" href="{{ asset('css/instructor.css') }}">
+
+<div class="instructor-dashboard">
+    <div class="instructor-header">
+        <h1>👨‍🏫 Manage Instructors</h1>
     </div>
 
-    <div class="mb-4">
-        <nav class="flex space-x-2">
-            @php $tabs = ['all' => 'All', 'pending' => 'Pending', 'approved' => 'Approved', 'disabled' => 'Disabled']; @endphp
-            @foreach($tabs as $key => $label)
-                <a href="{{ route('admin.instructors.index', ['status' => $key === 'all' ? null : $key]) }}" class="px-3 py-1 rounded {{ ($status === $key || ($status === 'all' && $key === 'all')) ? 'bg-gray-200' : 'hover:bg-gray-100' }}">{{ $label }}</a>
-            @endforeach
-        </nav>
+    <!-- Filter Tabs -->
+    <div class="tabs-container">
+        <a href="{{ route('admin.instructors.index', ['status' => null]) }}" 
+           class="tab-button @if(request('status') === null || request('status') === 'all') active @endif">
+             All ({{ $total ?? 0 }})
+        </a>
+        <a href="{{ route('admin.instructors.index', ['status' => 'pending']) }}" 
+           class="tab-button @if(request('status') === 'pending') active @endif">
+             Pending ({{ $pending ?? 0 }})
+        </a>
+        <a href="{{ route('admin.instructors.index', ['status' => 'approved']) }}" 
+           class="tab-button @if(request('status') === 'approved') active @endif">
+             Approved ({{ $approved ?? 0 }})
+        </a>
+        <a href="{{ route('admin.instructors.index', ['status' => 'disabled']) }}" 
+           class="tab-button @if(request('status') === 'disabled') active @endif">
+            ❌ Disabled ({{ $disabled ?? 0 }})
+        </a>
     </div>
 
-    <div class="bg-white rounded shadow overflow-x-auto">
-        <table class="min-w-full" role="table" aria-label="Instructors list">
-            <caption class="sr-only">List of instructors</caption>
-            <thead>
-                <tr class="text-left text-sm text-gray-600">
-                    <th class="px-4 py-3">Name</th>
-                    <th class="px-4 py-3">Email</th>
-                    <th class="px-4 py-3">Status</th>
-                    <th class="px-4 py-3">Joined</th>
-                    <th class="px-4 py-3">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($instructors as $instructor)
-                    <tr class="border-t">
-                        <td class="px-4 py-3">{{ $instructor->user->name ?? '—' }}</td>
-                        <td class="px-4 py-3">{{ $instructor->user->email ?? '—' }}</td>
-                        <td class="px-4 py-3">
-                            @if($instructor->is_disabled)
-                                <span class="text-red-600">Disabled</span>
+    <!-- Instructors Table -->
+    <div style="background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); overflow: hidden;">
+        @if($instructors->count() > 0)
+            <table class="content-table">
+                <thead>
+                    <tr>
+                        <th> Name</th>
+                        <th>📧 Email</th>
+                        <th> Status</th>
+                        <th>🕐 Joined</th>
+                        <th> Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($instructors as $instructor)
+                    <tr>
+                        <td>
+                            <a href="{{ route('admin.instructors.show', $instructor) }}" style="color: #4f46e5; text-decoration: none; font-weight: 500;">
+                                 {{ $instructor->user->name ?? '—' }}
+                            </a>
+                        </td>
+                        <td>{{ $instructor->user->email ?? '—' }}</td>
+                        <td>
+                            @if($instructor->rejected_at)
+                                <span class="status-badge rejected">❌ Rejected</span>
+                            @elseif($instructor->is_disabled)
+                                <span class="status-badge rejected">❌ Disabled</span>
                             @elseif($instructor->is_approved)
-                                <span class="text-green-600">Approved</span>
+                                <span class="status-badge approved"> Approved</span>
                             @else
-                                <span class="text-yellow-600">Pending</span>
+                                <span class="status-badge pending"> Pending</span>
                             @endif
                         </td>
-                        <td class="px-4 py-3 text-sm text-gray-500">{{ $instructor->created_at->diffForHumans() }}</td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                @if(!$instructor->is_approved)
-                                    <form method="POST" action="{{ route('admin.instructors.approve', $instructor) }}" onsubmit="return confirm('Approve this instructor?');">
+                        <td style="color: #999; font-size: 13px;">{{ $instructor->created_at->diffForHumans() }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                @if($instructor->is_disabled)
+                                    <!-- Disabled: show only Enable -->
+                                    <form method="POST" action="{{ route('admin.instructors.toggleDisable', $instructor) }}" style="display: inline;">
                                         @csrf
-                                        <button type="submit" aria-label="Approve {{ $instructor->user->name ?? 'instructor' }}" class="px-2 py-1 bg-green-600 text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-500">Approve</button>
+                                        <button type="submit" class="btn-small" style="background: #10b981; color: white;">Enable</button>
+                                    </form>
+                                @elseif($instructor->is_approved)
+                                    <!-- Approved (not disabled): show Disable -->
+                                    <form method="POST" action="{{ route('admin.instructors.toggleDisable', $instructor) }}" style="display: inline;">
+                                        @csrf
+                                        <button type="submit" class="btn-small" style="background: #6b7280; color: white;">Disable</button>
+                                    </form>
+                                @else
+                                    <!-- Pending: show Approve & Reject only -->
+                                    <form method="POST" action="{{ route('admin.instructors.approve', $instructor) }}" style="display: inline;">
+                                        @csrf
+                                        <button type="submit" class="btn-small" style="background: #16a34a; color: white;">Approve</button>
+                                    </form>
+
+                                    <form method="POST" action="{{ route('admin.instructors.reject', $instructor) }}" style="display: inline;" class="reject-form">
+                                        @csrf
+                                        <input type="hidden" name="reason" value="">
+                                        <button type="submit" class="btn-small" style="background: #ef4444; color: white;">Reject</button>
                                     </form>
                                 @endif
-
-                                @if(!$instructor->is_disabled)
-                                    <form method="POST" action="{{ route('admin.instructors.reject', $instructor) }}" onsubmit="return confirm('Reject this instructor?');">
-                                        @csrf
-                                        <button type="submit" aria-label="Reject {{ $instructor->user->name ?? 'instructor' }}" class="px-2 py-1 bg-red-600 text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500">Reject</button>
-                                    </form>
-                                @endif
-
-                                <form method="POST" action="{{ route('admin.instructors.toggleDisable', $instructor) }}" onsubmit="return confirm('Toggle enable/disable for this instructor?');">
-                                    @csrf
-                                    <button type="submit" aria-label="{{ $instructor->is_disabled ? 'Enable' : 'Disable' }} {{ $instructor->user->name ?? 'instructor' }}" class="px-2 py-1 bg-gray-600 text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-gray-500">{{ $instructor->is_disabled ? 'Enable' : 'Disable' }}</button>
-                                </form>
                             </div>
                         </td>
                     </tr>
-                @empty
-                    <tr>
-                        <td class="px-4 py-3" colspan="5">No instructors found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                    @endforeach
+                </tbody>
+            </table>
 
-    <div class="mt-4">{{ $instructors->links() }}</div>
+            <!-- Pagination -->
+            <div style="padding: 20px; text-align: center;">
+                {{ $instructors->links() }}
+            </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.querySelectorAll('.reject-form').forEach(function(form) {
+                        form.addEventListener('submit', function(e) {
+                            var reason = prompt('Optional: add a short reason for rejection (leave blank to skip):');
+                            if (reason === null) {
+                                // user cancelled
+                                e.preventDefault();
+                                return;
+                            }
+                            var input = form.querySelector('input[name="reason"]');
+                            if (input) input.value = reason;
+                        });
+                    });
+                });
+            </script>
+        @else
+            <div class="empty-section">
+                <p>No instructors found in this category.</p>
+                <a href="{{ route('admin.instructors.index') }}">View All Instructors</a>
+            </div>
+        @endif
+    </div>
+</div>
 @endsection

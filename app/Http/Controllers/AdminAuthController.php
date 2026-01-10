@@ -48,7 +48,11 @@ class AdminAuthController extends Controller
 
         $recent = Instructor::with('user')->orderBy('created_at', 'desc')->take(5)->get();
 
-        return view('admin.dashboard', compact('total', 'approved', 'pending', 'disabled', 'recent'));
+        // certifications stats
+        $certCount = \App\Models\Certification::count();
+        $recentCerts = \App\Models\Certification::with('instructor.user')->orderBy('created_at', 'desc')->take(5)->get();
+
+        return view('admin.dashboard', compact('total', 'approved', 'pending', 'disabled', 'recent', 'certCount', 'recentCerts'));
     }
 
     public function instructors(Request $request)
@@ -71,7 +75,20 @@ class AdminAuthController extends Controller
 
         $instructors = $query->paginate(20)->withQueryString();
 
-        return view('admin.instructors.index', compact('instructors', 'status'));
+        // Get counts for filter tabs
+        $total = Instructor::count();
+        $pending = Instructor::where('is_approved', false)->where('is_disabled', false)->count();
+        $approved = Instructor::where('is_approved', true)->where('is_disabled', false)->count();
+        $disabled = Instructor::where('is_disabled', true)->count();
+
+        return view('admin.instructors.index', compact('instructors', 'status', 'total', 'pending', 'approved', 'disabled'));
+    }
+
+    public function showInstructor(Instructor $instructor)
+    {
+        $instructor->load('user', 'skills', 'certifications', 'availabilities', 'projectEngagements');
+        
+        return view('admin.instructors.show', compact('instructor'));
     }
 
     public function approveInstructor(Request $request, Instructor $instructor)
@@ -85,33 +102,70 @@ class AdminAuthController extends Controller
         $instructor->is_disabled = false;
         $instructor->save();
 
-        // send notification email
+        // send notification email (queued or send immediately if queue driver is sync)
         try {
-            \Illuminate\Support\Facades\Mail::to($instructor->user->email)->send(new \App\Mail\InstructorApproved($instructor));
+            $adminName = Auth::guard('admin')->user()->name ?? null;
+            if (config('queue.default') === 'sync') {
+                \Illuminate\Support\Facades\Mail::to($instructor->user->email)->send(new \App\Mail\InstructorApproved($instructor, $adminName));
+                \Illuminate\Support\Facades\Log::info('Instructor approved email sent immediately', ['instructor' => $instructor->id]);
+                $emailNote = ' Email sent.';
+            } else {
+                \Illuminate\Support\Facades\Mail::to($instructor->user->email)->queue(new \App\Mail\InstructorApproved($instructor, $adminName));
+                \Illuminate\Support\Facades\Log::info('Instructor approved email queued', ['instructor' => $instructor->id]);
+                $emailNote = ' Email queued to be sent by worker.';
+            }
         } catch (\Exception $e) {
             // don't break flow on mail failures; log for debugging
-            \Illuminate\Support\Facades\Log::error('Failed to send instructor approved email: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to queue/send instructor approved email: ' . $e->getMessage());
+            $emailNote = ' Failed to queue/send email.';
         }
 
-        return back()->with('status', 'Instructor approved');
+        // create a database notification so it shows up in-app
+        try {
+            $instructor->user->notify(new \App\Notifications\AdminActionNotification($instructor, 'approved', 'Instructor'));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to create DB notification for instructor approval: ' . $e->getMessage());
+        }
+
+        return back()->with('status', 'Instructor approved.' . ($emailNote ?? ''));
     }
 
     public function rejectInstructor(Request $request, Instructor $instructor)
     {
+        $reason = $request->input('reason');
         $instructor->is_approved = false;
         $instructor->rejected_by = Auth::guard('admin')->id();
         $instructor->rejected_at = now();
+        $instructor->rejected_reason = $reason;
         $instructor->is_disabled = true; // rejected accounts disabled
         $instructor->save();
 
-        // send rejection email
+        // send rejection email (queued or send immediately if sync)
         try {
-            \Illuminate\Support\Facades\Mail::to($instructor->user->email)->send(new \App\Mail\InstructorRejected($instructor));
+            $adminName = Auth::guard('admin')->user()->name ?? null;
+            $reason = $request->input('reason');
+            if (config('queue.default') === 'sync') {
+                \Illuminate\Support\Facades\Mail::to($instructor->user->email)->send(new \App\Mail\InstructorRejected($instructor, $adminName, $reason));
+                \Illuminate\Support\Facades\Log::info('Instructor rejected email sent immediately', ['instructor' => $instructor->id]);
+                $emailNote = ' Email sent.';
+            } else {
+                \Illuminate\Support\Facades\Mail::to($instructor->user->email)->queue(new \App\Mail\InstructorRejected($instructor, $adminName, $reason));
+                \Illuminate\Support\Facades\Log::info('Instructor rejected email queued', ['instructor' => $instructor->id]);
+                $emailNote = ' Email queued to be sent by worker.';
+            }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send instructor rejected email: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Failed to queue/send instructor rejected email: ' . $e->getMessage());
+            $emailNote = ' Failed to queue/send email.';
         }
 
-        return back()->with('status', 'Instructor rejected');
+        // create DB notification
+        try {
+            $instructor->user->notify(new \App\Notifications\AdminActionNotification($instructor, 'rejected', 'Instructor', ['reason' => $reason]));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to create DB notification for instructor rejection: ' . $e->getMessage());
+        }
+
+        return back()->with('status', 'Instructor rejected.' . ($emailNote ?? ''));
     }
 
     public function toggleDisableInstructor(Request $request, Instructor $instructor)
@@ -119,7 +173,34 @@ class AdminAuthController extends Controller
         $instructor->is_disabled = !$instructor->is_disabled;
         $instructor->save();
 
+        $adminName = Auth::guard('admin')->user()->name ?? null;
+
+        // queue or send a status email (send immediately if queue driver is sync)
+        try {
+            $status = $instructor->is_disabled ? 'disabled' : 'enabled';
+            if (config('queue.default') === 'sync') {
+                \Illuminate\Support\Facades\Mail::to($instructor->user->email)->send(new \App\Mail\InstructorStatusMail($instructor, $status, $adminName));
+                \Illuminate\Support\Facades\Log::info('Instructor status email sent immediately', ['instructor' => $instructor->id, 'status' => $status]);
+                $emailNote = ' Email sent.';
+            } else {
+                \Illuminate\Support\Facades\Mail::to($instructor->user->email)->queue(new \App\Mail\InstructorStatusMail($instructor, $status, $adminName));
+                \Illuminate\Support\Facades\Log::info('Instructor status email queued', ['instructor' => $instructor->id, 'status' => $status]);
+                $emailNote = ' Email queued to be sent by worker.';
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to queue/send instructor status email: ' . $e->getMessage());
+            $emailNote = ' Failed to queue/send email.';
+        }
+
+        // create DB notification
+        try {
+            $status = $instructor->is_disabled ? 'disabled' : 'enabled';
+            $instructor->user->notify(new \App\Notifications\AdminActionNotification($instructor, $status, 'Instructor'));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Failed to create DB notification for instructor status change: ' . $e->getMessage());
+        }
+
         $msg = $instructor->is_disabled ? 'Instructor disabled' : 'Instructor enabled';
-        return back()->with('status', $msg);
+        return back()->with('status', $msg . ($emailNote ?? ''));
     }
 }

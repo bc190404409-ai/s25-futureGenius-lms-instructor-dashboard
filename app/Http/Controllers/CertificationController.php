@@ -33,7 +33,7 @@ class CertificationController extends Controller
             'file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:2048',
             'issue_date' => 'required|date',
             'expiry_date' => 'nullable|date|after_or_equal:issue_date',
-            'status' => 'required|in:pending,approval',
+            // status is set by system to 'pending' by default
         ]);
 
         $filePath = null;
@@ -41,14 +41,16 @@ class CertificationController extends Controller
             $filePath = $request->file('file')->store('certifications', 'public');
         }
 
+        // create certification tied to the instructor (both columns set to current user)
         Certification::create([
+            'instructor_id' => Auth::id(),
             'user_id' => Auth::id(),
             'title' => $validated['title'],
             'issuer' => $validated['issuer'],
-            'file' => $filePath,
+            'file_path' => $filePath,
             'issue_date' => $validated['issue_date'],
             'expiry_date' => $validated['expiry_date'] ?? null,
-            'status' => $validated['status'],
+            'status' => 'pending',
         ]);
 
         return redirect()->route('certifications.index')->with('success', 'Certification added successfully.');
@@ -74,8 +76,9 @@ class CertificationController extends Controller
         $status = 'pending';
 
         if ($request->has('status')) {
-            if ($request->status === 'approval') {
-                $status = 'approval';
+            // normalize incoming status to match DB enum ('pending' or 'approved')
+            if ($request->status === 'approved') {
+                $status = 'approved';
             } else {
                 $status = 'pending';
             }
@@ -87,7 +90,7 @@ class CertificationController extends Controller
             'file' => 'nullable|file|mimes:pdf,jpg,png|max:2048',
             'issue_date' => 'required|date',
             'expiry_date' => 'nullable|date|after_or_equal:issue_date',
-            'status' => 'required|in:pending,approval',
+            'status' => 'required|in:pending,approved',
         ]);
 
         if ($request->hasFile('file')) {
@@ -103,6 +106,7 @@ class CertificationController extends Controller
             'issue_date' => $request->issue_date,
             'expiry_date' => $request->expiry_date,
             'status' => $status,
+            'file_path' => $certification->file_path,
         ]);
 
         return redirect()->route('certifications.index')->with('success', 'Certification updated successfully.');

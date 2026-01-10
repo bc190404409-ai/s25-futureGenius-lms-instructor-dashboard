@@ -130,6 +130,7 @@ Route::middleware(['auth', 'can:admin'])->group(function () {
 // Socialite routes for instructor registration/login
 Route::get('auth/redirect/{provider}', [App\Http\Controllers\Auth\SocialAuthController::class, 'redirect'])->name('social.redirect');
 Route::get('auth/callback/{provider}', [App\Http\Controllers\Auth\SocialAuthController::class, 'callback'])->name('social.callback');
+Route::view('/privacy-policy', 'privacy-policy')->name('privacy.policy');
 
 // OTP verification routes
 Route::get('verify-otp', function(){ return redirect('/'); })->name('verify.otp.form'); // placeholder if accessed directly
@@ -145,6 +146,7 @@ Route::post('admin/logout', [App\Http\Controllers\AdminAuthController::class, 'l
 Route::prefix('admin')->middleware('auth:admin')->group(function () {
     Route::get('/', [App\Http\Controllers\AdminAuthController::class, 'dashboard'])->name('admin.dashboard');
     Route::get('/instructors', [App\Http\Controllers\AdminAuthController::class, 'instructors'])->name('admin.instructors.index');
+    Route::get('/instructors/{instructor}', [App\Http\Controllers\AdminAuthController::class, 'showInstructor'])->name('admin.instructors.show');
     Route::post('/instructors/{instructor}/approve', [App\Http\Controllers\AdminAuthController::class, 'approveInstructor'])->name('admin.instructors.approve');
     Route::post('/instructors/{instructor}/reject', [App\Http\Controllers\AdminAuthController::class, 'rejectInstructor'])->name('admin.instructors.reject');
     Route::post('/instructors/{instructor}/toggle-disable', [App\Http\Controllers\AdminAuthController::class, 'toggleDisableInstructor'])->name('admin.instructors.toggleDisable');

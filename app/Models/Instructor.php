@@ -20,6 +20,7 @@ class Instructor extends Model
         'is_disabled',
         'rejected_by',
         'rejected_at',
+        'rejected_reason',
     ];
 
     public function user()

@@ -4,60 +4,63 @@
 @section('page_title', 'My Projects')
 
 @section('content')
-
-<div class="flex justify-between items-center mb-6">
-    <h2 class="text-xl font-bold">My Projects</h2>
-    <a href="{{ route('projects.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500">Add Project</a>
+<div class="page-header">
+    <h1> My Projects</h1>
 </div>
 
 @if(session('success'))
-    <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
-        {{ session('success') }}
-    </div>
+    <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
-<table class="min-w-full bg-white shadow rounded overflow-hidden">
-    <thead class="bg-gray-100">
-        <tr>
-            <th class="text-left p-4">Title</th>
-            <th class="text-left p-4">Category</th>
-            <th class="text-left p-4">Start Date</th>
-            <th class="text-left p-4">End Date</th>
-            <th class="text-left p-4">Status</th>
-            <th class="text-left p-4">Media</th>
-            <th class="text-center p-4">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($projects as $project)
-            <tr class="border-b">
-                <td class="p-4">{{ $project->title }}</td>
-                <td class="p-4">{{ $project->category }}</td>
-                <td class="p-4">{{ $project->start_date }}</td>
-                <td class="p-4">{{ $project->end_date }}</td>
-                <td class="p-4 capitalize">{{ $project->status }}</td>
-                <td class="p-4">
-                    @if($project->media)
-                        <a href="{{ asset('storage/' . $project->media) }}" target="_blank" class="text-blue-600 hover:underline">View</a>
-                    @else
-                        N/A
-                    @endif
-                </td>
-                <td class="p-4 flex justify-center gap-2">
-                    <a href="{{ route('projects.edit', $project) }}" class="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-300">Edit</a>
-                    <form action="{{ route('projects.destroy', $project) }}" method="POST" onsubmit="return confirm('Are you sure?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="7" class="text-center p-4 text-gray-500">No projects added yet.</td>
-            </tr>
-        @endforelse
-    </tbody>
-</table>
+<div style="margin-bottom: 25px;">
+    <a href="{{ route('projects.create') }}" class="btn btn-primary"> Add New Project</a>
+</div>
 
+@if($projects->count() > 0)
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>📋 Title</th>
+                    <th>📂 Category</th>
+                    <th>🏁 Start Date</th>
+                    <th>🏁 End Date</th>
+                    <th> Status</th>
+                    <th> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($projects as $project)
+                    <tr>
+                        <td><strong>{{ $project->title }}</strong></td>
+                        <td>{{ $project->category }}</td>
+                        <td>{{ $project->start_date }}</td>
+                        <td>{{ $project->end_date }}</td>
+                        <td>
+                            <span class="badge badge-{{ $project->status == 'completed' ? 'success' : ($project->status == 'in_progress' ? 'primary' : 'warning') }}">
+                                {{ ucfirst(str_replace('_', ' ', $project->status)) }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ route('projects.edit', $project) }}" class="btn btn-sm" style="background: #3b82f6; color: white; text-decoration: none; display: inline-block;"> Edit</a>
+                            <form action="{{ route('projects.destroy', $project) }}" method="POST" onsubmit="return confirm('Are you sure?')" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm" style="background: #ef4444; color: white; border: none; cursor: pointer;"> Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+@else
+    <div class="card">
+        <div class="card-body" style="text-align: center; padding: 40px;">
+            <p style="font-size: 48px; margin-bottom: 15px;"></p>
+            <p style="color: #64748b; margin-bottom: 20px; font-size: 16px;">No projects added yet.</p>
+            <a href="{{ route('projects.create') }}" class="btn btn-primary"> Create Your First Project</a>
+        </div>
+    </div>
+@endif
 @endsection
