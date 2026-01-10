@@ -11,6 +11,7 @@ class Certification extends Model
 
     protected $fillable = [
         'instructor_id',
+        'user_id',
         'title',
         'issuer',
         'file_path',

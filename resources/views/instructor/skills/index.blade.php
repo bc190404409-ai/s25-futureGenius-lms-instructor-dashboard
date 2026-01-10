@@ -4,56 +4,67 @@
 @section('page_title', 'My Skills')
 
 @section('content')
-
-<div class="flex justify-between items-center mb-6">
-    <h2 class="text-xl font-bold">My Skills</h2>
-    <a href="{{ route('skills.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500">Add Skill</a>
+<div class="page-header">
+    <h1> My Skills</h1>
 </div>
 
 @if(session('success'))
-    <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
-        {{ session('success') }}
-    </div>
+    <div class="alert alert-success">{{ session('success') }}</div>
 @endif
 
-<table class="min-w-full bg-white shadow rounded overflow-hidden">
-    <thead class="bg-gray-100">
-        <tr>
-            <th class="text-left p-4">Skill Name</th>
-            <th class="text-left p-4">Skill Type</th>
-            <th class="text-left p-4">Video Link</th>
-            <th class="text-left p-4">Status</th>
-            <th class="text-center p-4">Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($skills as $skill)
-            <tr class="border-b">
-                <td class="p-4">{{ $skill->skill_name }}</td>
-                <td class="p-4 capitalize">{{ $skill->skill_type }}</td>
-                <td class="p-4">
-                    @if($skill->video_link)
-                        <a href="{{ $skill->video_link }}" class="text-blue-600 hover:underline" target="_blank">View</a>
-                    @else
-                        N/A
-                    @endif
-                </td>
-                <td class="p-4 capitalize">{{ $skill->status }}</td>
-                <td class="p-4 flex justify-center gap-2">
-                    <a href="{{ route('skills.edit', $skill) }}" class="bg-yellow-400 text-white px-3 py-1 rounded hover:bg-yellow-300">Edit</a>
-                    <form action="{{ route('skills.destroy', $skill) }}" method="POST" onsubmit="return confirm('Are you sure?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-500">Delete</button>
-                    </form>
-                </td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="5" class="text-center p-4 text-gray-500">No skills added yet.</td>
-            </tr>
-        @endforelse
-    </tbody>
-</table>
+<div style="margin-bottom: 25px;">
+    <a href="{{ route('skills.create') }}" class="btn btn-primary"> Add New Skill</a>
+</div>
 
+@if($skills->count() > 0)
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>🏷️ Skill Name</th>
+                    <th>📂 Type</th>
+                    <th> Video Link</th>
+                    <th> Status</th>
+                    <th> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($skills as $skill)
+                    <tr>
+                        <td><strong>{{ $skill->skill_name }}</strong></td>
+                        <td>{{ $skill->skill_type }}</td>
+                        <td>
+                            @if($skill->video_link)
+                                <a href="{{ $skill->video_link }}" target="_blank" style="color: #4f46e5; text-decoration: none;"> View</a>
+                            @else
+                                <span style="color: #999;">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ $skill->status == 'active' ? 'success' : 'warning' }}">
+                                {{ ucfirst($skill->status) }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="{{ route('skills.edit', $skill) }}" class="btn btn-sm" style="background: #3b82f6; color: white; text-decoration: none; display: inline-block;"> Edit</a>
+                            <form action="{{ route('skills.destroy', $skill) }}" method="POST" onsubmit="return confirm('Are you sure?')" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-sm" style="background: #ef4444; color: white; border: none; cursor: pointer;"> Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+@else
+    <div class="card">
+        <div class="card-body" style="text-align: center; padding: 40px;">
+            <p style="font-size: 48px; margin-bottom: 15px;"></p>
+            <p style="color: #64748b; margin-bottom: 20px; font-size: 16px;">No skills added yet.</p>
+            <a href="{{ route('skills.create') }}" class="btn btn-primary"> Create Your First Skill</a>
+        </div>
+    </div>
+@endif
 @endsection
