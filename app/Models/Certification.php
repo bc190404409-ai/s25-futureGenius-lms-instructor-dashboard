@@ -18,6 +18,7 @@ class Certification extends Model
         'issue_date',
         'expiry_date',
         'status',
+        'rejected_reason',
     ];
     public function instructor()
     {

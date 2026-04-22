@@ -26,12 +26,17 @@
                         👩‍🏫 Instructors
                     </a>
                 </li>
+                <li role="none">
+                    <a href="{{ route('admin.approvals.certifications') }}" role="menuitem" @if(request()->routeIs('admin.approvals.*')) class="active" @endif>
+                        🏆 Certification Approvals
+                    </a>
+                </li>
             </ul>
         </nav>
-        <div style="margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.2); padding-top: 20px;">
+        <div class="logout-section">
             <form method="POST" action="{{ route('admin.logout') }}">
                 @csrf
-                <button type="submit" style="width: 100%; text-align: left; color: #fff; background: none; border: none; cursor: pointer; padding: 10px 12px; border-radius: 6px; font-size: 14px;" onmouseover="this.style.background='#4f46e5'" onmouseout="this.style.background='none'">
+                <button type="submit" class="logout-btn">
                     Logout
                 </button>
             </form>
@@ -40,12 +45,13 @@
 
     <!-- Main Content -->
     <div class="main-content">
-        <div class="header">
-            <h2>Admin Dashboard</h2>
-        </div>
+        @include('includes.topbar')
         @include('partials.flash')
         @yield('content')
     </div>
 </div>
+
+    @stack('scripts')
+    @yield('scripts')
 </body>
 </html>

@@ -1,10 +1,10 @@
 @extends('layouts.guest')
 
-@section('title', 'Forgot Password')
+@section('title', 'Admin Password Reset')
 
 @section('content')
 <div class="login-container">
-    <h2>Forgot your password?</h2>
+    <h2>Admin: Forgot your password?</h2>
 
     @if (session('status'))
         <div class="success" style="margin-bottom:12px;">{{ session('status') }}</div>
@@ -14,7 +14,7 @@
         <div class="error" style="margin-bottom:12px;">{{ $errors->first() }}</div>
     @endif
 
-    <form method="POST" action="{{ route('password.email') }}" id="reset-form" aria-label="Password reset request form">
+    <form method="POST" action="{{ route('admin.password.email') }}" id="reset-form" aria-label="Admin password reset request form">
         @csrf
         <div class="form-group">
             <label for="email">Email</label>
@@ -28,7 +28,7 @@
     </form>
 
     <div class="login-links" style="margin-top:14px;">
-        Remembered your password? <a href="{{ route('login.form') }}">Sign in</a>
+        Remembered your password? <a href="{{ route('admin.login.form') }}">Sign in</a>
     </div>
 
 <style>
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const sendText = document.getElementById('send-text');
     const form = document.getElementById('reset-form');
 
-    const cooldownKey = 'pwResetCooldown';
+    const cooldownKey = 'pwResetCooldown_admin';
     const defaultCooldown = {{ session('reset_remaining', 60) }};
 
     function startCooldown(seconds){

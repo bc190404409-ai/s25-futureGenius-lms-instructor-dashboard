@@ -50,14 +50,17 @@ class AdminAuthController extends Controller
 
         // certifications stats
         $certCount = \App\Models\Certification::count();
+        $certPending = \App\Models\Certification::where('status', 'pending')->count();
+        $certApproved = \App\Models\Certification::where('status', 'approved')->count();
         $recentCerts = \App\Models\Certification::with('instructor.user')->orderBy('created_at', 'desc')->take(5)->get();
 
-        return view('admin.dashboard', compact('total', 'approved', 'pending', 'disabled', 'recent', 'certCount', 'recentCerts'));
+        return view('admin.dashboard', compact('total', 'approved', 'pending', 'disabled', 'recent', 'certCount', 'certPending', 'certApproved', 'recentCerts'));
     }
 
     public function instructors(Request $request)
     {
         $status = $request->query('status', 'all');
+        $q = trim($request->query('q', ''));
 
         $query = Instructor::with('user')->orderBy('created_at', 'desc');
 
@@ -73,6 +76,12 @@ class AdminAuthController extends Controller
             $query->where('is_disabled', true);
         }
 
+        if ($q !== '') {
+            $query->whereHas('user', function ($userQuery) use ($q) {
+                $userQuery->where('name', 'like', "%{$q}%")->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
         $instructors = $query->paginate(20)->withQueryString();
 
         // Get counts for filter tabs
@@ -81,7 +90,7 @@ class AdminAuthController extends Controller
         $approved = Instructor::where('is_approved', true)->where('is_disabled', false)->count();
         $disabled = Instructor::where('is_disabled', true)->count();
 
-        return view('admin.instructors.index', compact('instructors', 'status', 'total', 'pending', 'approved', 'disabled'));
+        return view('admin.instructors.index', compact('instructors', 'status', 'total', 'pending', 'approved', 'disabled', 'q'));
     }
 
     public function showInstructor(Instructor $instructor)

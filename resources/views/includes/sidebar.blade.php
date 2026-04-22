@@ -35,17 +35,6 @@
             class="@if(request()->routeIs('availabilities.*')) active @endif">
             🕒 Availability
         </a>
-
-        <h3>ASSESSMENTS</h3>
-
-        <a href="{{ route('instructor.assessments.index') }}"
-            class="@if(request()->routeIs('assessments.*')) active @endif">
-            📝 Manage Assessments
-        </a>
-
-        <a href="{{ route('instructor.assessments.submissions.index') }}"
-            class="@if(request()->routeIs('assessments.submissions.*')) active @endif">
-            📊 Assessment Submissions
         </a>
     </nav>
 

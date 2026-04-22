@@ -52,9 +52,15 @@ class AuthController extends Controller
         ]);
 
         try {
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\InstructorOtp($otp));
+            // Queue the OTP email for reliability (will fall back to send if queue is not processed)
+            \Illuminate\Support\Facades\Mail::to($user->email)->queue(new \App\Mail\InstructorOtp($otp));
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Failed to send OTP email: '. $e->getMessage());
+            // If queueing fails for some reason, attempt to send synchronously and log the reason
+            try {
+                \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\InstructorOtp($otp));
+            } catch (\Exception $ex) {
+                \Illuminate\Support\Facades\Log::error('Failed to send OTP email: '. $ex->getMessage());
+            }
         }
 
         // Show OTP verification form (do not log in or show pending page until verified)
@@ -109,11 +115,11 @@ class AuthController extends Controller
             }
 
             if (!$userByEmail->email_verified_at) {
-                return back()->with('error', 'Please verify your email before logging in.');
+                return back()->withErrors(['email' => 'Please verify your email before logging in.']);
             }
 
             if ($instructor->is_disabled) {
-                return back()->with('error', 'Your account has been disabled. Please contact support.');
+                return back()->withErrors(['email' => 'Your account has been disabled. Please contact support.']);
             }
 
             // For instructors, authenticate by checking password and logging in directly
@@ -149,9 +155,10 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
         return redirect('/login');
     }
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         $instructorId = Auth::id();
+        $q = trim($request->query('q', ''));
 
         $stats = [
             'skills' => Skill::where('instructor_id', $instructorId)->count(),
@@ -160,10 +167,21 @@ class AuthController extends Controller
             'availabilities' => Availability::where('instructor_id', $instructorId)->count(),
         ];
 
-        $recentSkills = Skill::where('instructor_id', $instructorId)->latest()->take(5)->get();
-        $recentCerts = Certification::where('instructor_id', $instructorId)->latest()->take(5)->get();
-        $recentProjects = Project::where('created_by', $instructorId)->latest()->take(5)->get();
+        $recentSkills = Skill::where('instructor_id', $instructorId)
+            ->when($q !== '', function ($qry) use ($q) { $qry->where('skill_name', 'like', "%{$q}%"); })
+            ->orderBy('created_at', 'desc')
+            ->take(5)->get();
 
-        return view('instructor.dashboard', compact('stats', 'recentSkills', 'recentCerts', 'recentProjects'));$user = Auth::user();
+        $recentCerts = Certification::where('instructor_id', $instructorId)
+            ->when($q !== '', function ($qry) use ($q) { $qry->where('title', 'like', "%{$q}%"); })
+            ->orderBy('created_at', 'desc')
+            ->take(5)->get();
+
+        $recentProjects = Project::where('created_by', $instructorId)
+            ->when($q !== '', function ($qry) use ($q) { $qry->where('project_title', 'like', "%{$q}%")->orWhere('description', 'like', "%{$q}%"); })
+            ->orderBy('created_at', 'desc')
+            ->take(5)->get();
+
+        return view('instructor.dashboard', compact('stats', 'recentSkills', 'recentCerts', 'recentProjects', 'q'));
     }
 }

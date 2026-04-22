@@ -6,8 +6,9 @@ use App\Models\EmailOtp;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
-class InstructorOtp extends Mailable
+class InstructorOtp extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 

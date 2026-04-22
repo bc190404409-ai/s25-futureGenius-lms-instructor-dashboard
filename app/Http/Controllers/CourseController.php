@@ -8,11 +8,21 @@ use Illuminate\Support\Facades\Auth;
 
 class CourseController extends Controller
 {
-    // List all courses
-    public function index()
+    // List all courses (for instructor area) with optional search
+    public function index(Request $request)
     {
-        $courses = Course::latest()->paginate(10);
-        return view('courses.index', compact('courses'));
+        $q = trim($request->query('q', ''));
+
+        $query = Course::where('instructor_id', Auth::id())->latest();
+
+        if ($q !== '') {
+            $query->where(function ($sub) use ($q) {
+                $sub->where('title', 'like', "%{$q}%")->orWhere('description', 'like', "%{$q}%");
+            });
+        }
+
+        $courses = $query->paginate(10)->withQueryString();
+        return view('courses.index', compact('courses', 'q'));
     }
 
     // Show create course form

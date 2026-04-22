@@ -1,16 +1,16 @@
 @extends('layouts.guest')
 
-@section('title', 'Reset Password')
+@section('title', 'Reset Admin Password')
 
 @section('content')
 <div class="login-container">
-    <h2>Reset Password</h2>
+    <h2>Reset Admin Password</h2>
 
     @if($errors->any())
-        <div class="error">{{ $errors->first() }}</div>
+        <div class="error" style="margin-bottom:12px;">{{ $errors->first() }}</div>
     @endif
 
-    <form method="POST" action="{{ route('password.update') }}" aria-label="Password reset form">
+    <form method="POST" action="{{ route('admin.password.update') }}" aria-label="Admin password reset form">
         @csrf
 
         <input type="hidden" name="token" value="{{ $token }}">
@@ -34,7 +34,7 @@
     </form>
 
     <div class="login-links" style="margin-top:14px;">
-        Remembered your password? <a href="{{ route('login.form') }}">Sign in</a>
+        Remembered your password? <a href="{{ route('admin.login.form') }}">Sign in</a>
     </div>
 </div>
 @endsection

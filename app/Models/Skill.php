@@ -11,6 +11,7 @@ class Skill extends Model
 
     protected $fillable = [
         'instructor_id',
+        'user_id',
         'skill_name',
         'skill_type',
         'video_link',

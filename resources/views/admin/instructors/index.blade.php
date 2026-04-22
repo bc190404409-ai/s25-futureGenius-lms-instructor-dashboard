@@ -8,24 +8,37 @@
         <h1>👨‍🏫 Manage Instructors</h1>
     </div>
 
-    <!-- Filter Tabs -->
-    <div class="tabs-container">
-        <a href="{{ route('admin.instructors.index', ['status' => null]) }}" 
-           class="tab-button @if(request('status') === null || request('status') === 'all') active @endif">
-             All ({{ $total ?? 0 }})
-        </a>
-        <a href="{{ route('admin.instructors.index', ['status' => 'pending']) }}" 
-           class="tab-button @if(request('status') === 'pending') active @endif">
-             Pending ({{ $pending ?? 0 }})
-        </a>
-        <a href="{{ route('admin.instructors.index', ['status' => 'approved']) }}" 
-           class="tab-button @if(request('status') === 'approved') active @endif">
-             Approved ({{ $approved ?? 0 }})
-        </a>
-        <a href="{{ route('admin.instructors.index', ['status' => 'disabled']) }}" 
-           class="tab-button @if(request('status') === 'disabled') active @endif">
-            ❌ Disabled ({{ $disabled ?? 0 }})
-        </a>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px;">
+        <!-- Filter Tabs -->
+        <div class="tabs-container" style="flex:1;">
+            <a href="{{ route('admin.instructors.index', ['status' => null]) }}" 
+               class="tab-button @if(request('status') === null || request('status') === 'all') active @endif">
+                 All ({{ $total ?? 0 }})
+            </a>
+            <a href="{{ route('admin.instructors.index', ['status' => 'pending']) }}" 
+               class="tab-button @if(request('status') === 'pending') active @endif">
+                 Pending ({{ $pending ?? 0 }})
+            </a>
+            <a href="{{ route('admin.instructors.index', ['status' => 'approved']) }}" 
+               class="tab-button @if(request('status') === 'approved') active @endif">
+                 Approved ({{ $approved ?? 0 }})
+            </a>
+            <a href="{{ route('admin.instructors.index', ['status' => 'disabled']) }}" 
+               class="tab-button @if(request('status') === 'disabled') active @endif">
+                ❌ Disabled ({{ $disabled ?? 0 }})
+            </a>
+        </div>
+
+        <!-- Search Form -->
+        <div style="flex:0 0 320px;">
+            <form method="GET" action="{{ route('admin.instructors.index') }}">
+                <input type="hidden" name="status" value="{{ request('status') }}">
+                <div style="display:flex; gap:8px;">
+                    <input name="q" value="{{ old('q', $q ?? request('q')) }}" placeholder="Search name or email" style="flex:1; padding:8px; border-radius:6px; border:1px solid #d1d5db;" />
+                    <button type="submit" class="btn-small" style="padding:8px 12px;">Search</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Instructors Table -->
