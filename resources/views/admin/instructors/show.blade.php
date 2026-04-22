@@ -5,11 +5,11 @@
 
 <div class="instructor-dashboard">
     <!-- Header with Back Button -->
-    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e5e7eb;">
-        <a href="{{ route('admin.instructors.index') }}" style="display: inline-flex; align-items: center; gap: 8px; color: #4f46e5; text-decoration: none; font-weight: 500; font-size: 14px;">
+    <div class="header-row">
+        <a href="{{ route('admin.instructors.index') }}" class="link-primary">
             ← Back to Instructors
         </a>
-        <h1 style="margin: 0; font-size: 28px;"> Instructor Details</h1>
+        <h1> Instructor Details</h1>
     </div>
 
     <!-- Instructor Basic Information -->
@@ -36,7 +36,7 @@
             <!-- Status -->
             <div>
                 <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">Status</p>
-                <div style="margin-top: 8px;">
+                <div class="mt-2">
                     @if($instructor->rejected_at)
                         <span class="status-badge rejected">❌ Rejected</span>
                     @elseif($instructor->is_disabled)
@@ -89,7 +89,7 @@
             <p style="color: #999; font-size: 12px; margin: 4px 0 0 0;">{{ is_string($instructor->rejected_at) ? '' : $instructor->rejected_at->diffForHumans() }}</p>
 
             @if($instructor->rejected_reason)
-                <p style="color: #555; font-size: 14px; margin-top: 12px;"><strong>Reason:</strong> {{ \Illuminate\Support\Str::limit($instructor->rejected_reason, 200) }}</p>
+                <p class="muted mt-3"><strong>Reason:</strong> {{ \Illuminate\Support\Str::limit($instructor->rejected_reason, 200) }}</p>
             @endif
         </div>
         @endif
@@ -259,7 +259,7 @@
                 </form>
             @endif
 
-            <a href="{{ route('admin.instructors.index') }}" style="display: inline-block; background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 500; text-decoration: none;">
+            <a href="{{ route('admin.instructors.index') }}" class="btn-small">
                 ← Back to List
             </a>
         </div>
@@ -267,6 +267,10 @@
 </div>
 
 <style>
+    .header-row { display: flex; align-items: center; gap: 15px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #e5e7eb; }
+    .header-row a { display: inline-flex; align-items: center; gap: 8px; color: #4f46e5; text-decoration: none; font-weight: 500; font-size: 14px; }
+    .header-row h1 { margin: 0; font-size: 28px; }
+
     .action-buttons {
         display: flex;
         flex-wrap: wrap;

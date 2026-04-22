@@ -4,8 +4,14 @@
 <link rel="stylesheet" href="{{ asset('css/instructor.css') }}">
 
 <div class="instructor-dashboard">
-    <div class="instructor-header">
+    <div class="instructor-header" style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
         <h1>📊 Instructor Dashboard</h1>
+        <form method="GET" action="{{ route('dashboard') }}" style="flex:0 0 360px;">
+            <div style="display:flex; gap:8px;">
+                <input name="q" value="{{ old('q', $q ?? request('q')) }}" placeholder="Search skills, certs, projects" style="flex:1; padding:8px; border-radius:6px; border:1px solid #d1d5db;" />
+                <button type="submit" class="btn-small" style="padding:8px 12px;">Search</button>
+            </div>
+        </form>
     </div>
 
     <!-- Stats Cards -->

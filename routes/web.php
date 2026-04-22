@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\AdminApprovalController;
+use App\Http\Controllers\Admin\AdminApprovalController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AssessmentController;
 use App\Http\Controllers\AssessmentSubmissionController;
@@ -16,9 +16,9 @@ use App\Http\Controllers\SkillController;
 use Illuminate\Support\Facades\Route;
 
 // Welcome page
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 // Auth routes
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register.form');
@@ -26,6 +26,12 @@ Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login.form');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Password reset routes (instructor users)
+Route::get('password/reset', [App\Http\Controllers\PasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [App\Http\Controllers\PasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('password/reset/{token}', [App\Http\Controllers\PasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [App\Http\Controllers\PasswordController::class, 'reset'])->name('password.update');
 
 // Dashboard and basic auth
 Route::middleware('auth')->group(function () {
@@ -141,6 +147,12 @@ Route::post('resend-otp', [App\Http\Controllers\Auth\OtpController::class, 'rese
 // Admin auth and dashboard
 Route::get('admin/login', [App\Http\Controllers\AdminAuthController::class, 'showLoginForm'])->name('admin.login.form');
 Route::post('admin/login', [App\Http\Controllers\AdminAuthController::class, 'login'])->name('admin.login');
+
+// Admin password reset (separate from instructor/user password reset)
+Route::get('admin/password/reset', [App\Http\Controllers\Admin\AdminPasswordController::class, 'showLinkRequestForm'])->name('admin.password.request');
+Route::post('admin/password/email', [App\Http\Controllers\Admin\AdminPasswordController::class, 'sendResetLinkEmail'])->name('admin.password.email');
+Route::get('admin/password/reset/{token}', [App\Http\Controllers\Admin\AdminPasswordController::class, 'showResetForm'])->name('admin.password.reset');
+Route::post('admin/password/reset', [App\Http\Controllers\Admin\AdminPasswordController::class, 'reset'])->name('admin.password.update');
 Route::post('admin/logout', [App\Http\Controllers\AdminAuthController::class, 'logout'])->name('admin.logout');
 
 Route::prefix('admin')->middleware('auth:admin')->group(function () {
@@ -150,4 +162,14 @@ Route::prefix('admin')->middleware('auth:admin')->group(function () {
     Route::post('/instructors/{instructor}/approve', [App\Http\Controllers\AdminAuthController::class, 'approveInstructor'])->name('admin.instructors.approve');
     Route::post('/instructors/{instructor}/reject', [App\Http\Controllers\AdminAuthController::class, 'rejectInstructor'])->name('admin.instructors.reject');
     Route::post('/instructors/{instructor}/toggle-disable', [App\Http\Controllers\AdminAuthController::class, 'toggleDisableInstructor'])->name('admin.instructors.toggleDisable');
+
+    // Admin approvals listing
+    Route::get('approvals/certifications', [App\Http\Controllers\Admin\AdminApprovalController::class, 'certificationsIndex'])->name('admin.approvals.certifications');
+    Route::get('approvals/certifications/{cert}', [App\Http\Controllers\Admin\AdminApprovalController::class, 'showCertification'])->name('admin.approvals.certifications.show');
+    Route::post('approvals/certifications/{cert}/approve', [App\Http\Controllers\Admin\AdminApprovalController::class, 'approveCertification'])->name('admin.approvals.certifications.approve');
+    Route::post('approvals/certifications/{cert}/reject', [App\Http\Controllers\Admin\AdminApprovalController::class, 'rejectCertification'])->name('admin.approvals.certifications.reject');
 });
+
+// Search endpoints for topbar suggestions
+Route::get('admin/search', [App\Http\Controllers\SearchController::class, 'suggestAdmin'])->name('admin.search');
+Route::get('instructor/search', [App\Http\Controllers\SearchController::class, 'suggestInstructor'])->name('instructor.search');

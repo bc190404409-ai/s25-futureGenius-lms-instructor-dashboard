@@ -5,12 +5,12 @@
     <h1>My Courses</h1>
 </div>
 
-<div style="display: flex; gap: 16px; margin-bottom: 24px;">
+<div class="flex-row mb-3">
     <a href="{{ route('instructor.courses.create') }}" class="btn btn-primary">Add New Course</a>
 </div>
 
 <div class="table-container">
-    <table style="width: 100%;">
+    <table class="w-full">
         <thead>
             <tr>
                 <th>#</th>
@@ -18,7 +18,7 @@
                 <th>Price</th>
                 <th>Level</th>
                 <th>Status</th>
-                <th style="text-align: center;">Actions</th>
+                <th class="text-center">Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -45,7 +45,7 @@
                         <span class="badge badge-secondary">Archived</span>
                     @endif
                 </td>
-                <td style="text-align: center;">
+                <td class="text-center">
                     <a href="{{ route('instructor.courses.edit', $course->id) }}" class="btn btn-sm btn-secondary" style="display: inline-block; margin-right: 8px;">Edit</a>
                     <form action="{{ route('instructor.courses.destroy', $course->id) }}" method="POST" class="inline-block">
                         @csrf
@@ -56,7 +56,7 @@
             </tr>
             @empty
             <tr>
-                <td colspan="6" style="text-align: center; padding: 40px; color: #999;">No courses found. <a href="{{ route('instructor.courses.create') }}" style="color: #4f46e5; text-decoration: underline;">Create your first course</a></td>
+                <td colspan="6" class="text-center p-10 muted">No courses found. <a href="{{ route('instructor.courses.create') }}" class="link-primary">Create your first course</a></td>
             </tr>
             @endforelse
         </tbody>
@@ -64,7 +64,7 @@
 </div>
 
 @if($courses->hasPages())
-<div style="margin-top: 24px; display: flex; justify-content: center;">
+<div class="mt-6 flex-center">
     {{ $courses->links() }}
 </div>
 @endif
